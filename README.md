@@ -58,6 +58,68 @@ parsed_lists |>
   with(table(b)[as.character(a)] * a) |> 
   sum(na.rm = TRUE)
 #> [1] 31
+```
+## Day 2: Red-Nosed Reports
 
-# reprex::reprex(input = "day01.R")
+<https://adventofcode.com/2024/day/2>
+
+``` r
+source("aoc.R")
+
+test_in <- 
+"7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9"
+
+parsed_reports <- 
+  aoc_lines(test_in) |> 
+  strsplit(" ") |> 
+  lapply(as.integer)
+  
+str(parsed_reports)
+#> List of 6
+#>  $ : int [1:5] 7 6 4 2 1
+#>  $ : int [1:5] 1 2 7 8 9
+#>  $ : int [1:5] 9 7 6 2 1
+#>  $ : int [1:5] 1 3 2 4 5
+#>  $ : int [1:5] 8 6 4 4 1
+#>  $ : int [1:5] 1 3 6 7 9
+```
+
+#### part1: count strictly monotonic level sequences where step is at most 3
+
+``` r
+# Ex: 2
+
+diff_within_tol <- \(x) all(abs(x) <= 3) 
+
+diff_is_strictly_monotonic  <- function(x){
+  signs <- sign(x) |> unique() 
+  length(signs) == 1 && signs[1] != 0
+} 
+
+parsed_reports |> 
+  lapply(diff) |> 
+  sapply(\(x) diff_within_tol(x) && diff_is_strictly_monotonic(x)) |> 
+  sum()
+#> [1] 2
+```
+
+#### part2: tolerate a single bad level
+
+``` r
+# Ex: 4
+parsed_reports |> 
+  sapply(
+    \(row) sapply(
+      seq_along(row), \(idx) {
+        dd <- diff(row[-idx])
+        diff_within_tol(dd) && diff_is_strictly_monotonic(dd)
+      } 
+    ) |> any()
+  ) |> sum()
+#> [1] 4
 ```
