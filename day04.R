@@ -80,6 +80,7 @@ sum(counts)
 #' Search for "A"-locations (3x3 sub-matrices), 
 #' exclude cases that are on the edge and check 
 #' if we can get "MS" or "SM" from both diagonals.
+# Ex: 9
 
 # Example "MAS" to search for:
 # M.S

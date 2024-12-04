@@ -320,6 +320,8 @@ exclude cases that are on the edge and check
 if we can get “MS” or “SM” from both diagonals.
 
 ``` r
+# Ex: 9
+
 # Example "MAS" to search for:
 # M.S
 # .A.
