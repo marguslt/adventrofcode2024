@@ -4,6 +4,7 @@ source("aoc.R")
 
 corrupted_mem_1 <- aoc_lines("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))")
 corrupted_mem_2 <- aoc_lines("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))")
+
 # -------------------------------------------------------------------------
 #' #### part1: add up real `mul()` instructions
 # Ex: 161

@@ -19,7 +19,6 @@ str(parsed_reports)
 # -------------------------------------------------------------------------
 #' #### part1: count strictly monotonic level sequences where step is at most 3
 # Ex: 2
-
 diff_within_tol <- \(x) all(abs(x) <= 3) 
 
 diff_is_strictly_monotonic  <- function(x){

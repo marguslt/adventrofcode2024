@@ -15,7 +15,6 @@ str(parsed_lists)
 # -------------------------------------------------------------------------
 #' #### part1: diff of ordered list summed
 # Ex: 11
-
 parsed_lists |> 
   with(sort(a) - sort(b)) |> 
   abs() |> 
@@ -32,7 +31,6 @@ parsed_lists |>
 #' #### part2: similarity score  
 #' Multiply each `a` with its count in `b`, sum
 # Ex: 31
-
 parsed_lists |> 
   with(table(b)[as.character(a)] * a) |> 
   sum(na.rm = TRUE)
