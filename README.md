@@ -421,7 +421,12 @@ g <-
   parsed_lst$rules |> 
   do.call(what = rbind) |> 
   graph_from_data_frame()
-# plot(g)
+plot(g)
+```
+
+![](img/day05_reprex_files_unnamed-chunk-4-1.png)<!-- -->
+
+``` r
 
 rule_compliance <- sapply(parsed_lst$updates, check_page_order, g = g)
 is_valid <- sapply(rule_compliance, all)
@@ -604,4 +609,123 @@ which(m == "X", arr.ind = TRUE) |>
 #> 5   7   3
 #>  [ reached 'max' / getOption("max.print") -- omitted 36 rows ]
 #> [1] 6
+```
+## Day 7: Bridge Repair
+
+<https://adventofcode.com/2024/day/7>
+
+``` r
+source("aoc.R")
+
+test_in <- 
+"190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20"
+
+# make sure we'd not have to deal with scientific notation when coercing numeric to char  
+options(scipen = 20)
+
+calibration_df <- 
+  test_in |>
+  aoc_table(sep = ":", col.names = c("test_val", "equation"), strip.white = TRUE) |>
+  within(equation <- strsplit(equation, " ") |> sapply(as.numeric))
+calibration_df
+#>   test_val      equation
+#> 1      190        10, 19
+#> 2     3267    81, 40, 27
+#> 3       83         17, 5
+#> 4      156         15, 6
+#> 5     7290   6, 8, 6, 15
+#> 6   161011    16, 10, 13
+#> 7      192     17, 8, 14
+#> 8    21037  9, 7, 18, 13
+#> 9      292 11, 6, 16, 20
+```
+
+#### part1: detect which equations can produce test value
+
+Numbers in equations are combined with operators (`+`, `*`), evaluated always from left to right.
+Use recursion to build equation tree
+
+``` r
+# Ex: 3749
+
+# Recursively test equations, in each call take first 2 elements, 
+# apply operator and pass it along with remaining equation values;
+# if number of equation values is reduced to 2, check if it matches final value;  
+# `||` to evaluate from left to right and stop
+
+test_equation <- function(equation, test_val, debug_ = FALSE){
+  if (debug_) paste0(equation, collapse = ", ") |> paste0(" ? ", test_val, "; ") |> message(appendLF = FALSE)
+  if (length(equation) == 2){
+    if (debug_) sprintf("sum : %d; prod : %d", sum(equation), prod(equation)) |> message()
+    return( sum(equation) ==  test_val || prod(equation) ==  test_val )
+  } 
+  return(
+      test_equation(c( sum(equation[1:2]), equation[-(1:2)]), test_val, debug_) ||  
+      test_equation(c(prod(equation[1:2]), equation[-(1:2)]), test_val, debug_)
+  )
+}
+calibration_df |> 
+  subset(subset = mapply(test_equation, equation, test_val, debug_ = TRUE), select = test_val) |> 
+  sum()
+#> 10, 19 ? 190; sum : 29; prod : 190
+#> 81, 40, 27 ? 3267; 121, 27 ? 3267; sum : 148; prod : 3267
+#> 17, 5 ? 83; sum : 22; prod : 85
+#> 15, 6 ? 156; sum : 21; prod : 90
+#> 6, 8, 6, 15 ? 7290; 14, 6, 15 ? 7290; 20, 15 ? 7290; sum : 35; prod : 300
+#> 84, 15 ? 7290; sum : 99; prod : 1260
+#> 48, 6, 15 ? 7290; 54, 15 ? 7290; sum : 69; prod : 810
+#> 288, 15 ? 7290; sum : 303; prod : 4320
+#> 16, 10, 13 ? 161011; 26, 13 ? 161011; sum : 39; prod : 338
+#> 160, 13 ? 161011; sum : 173; prod : 2080
+#> 17, 8, 14 ? 192; 25, 14 ? 192; sum : 39; prod : 350
+#> 136, 14 ? 192; sum : 150; prod : 1904
+#> 9, 7, 18, 13 ? 21037; 16, 18, 13 ? 21037; 34, 13 ? 21037; sum : 47; prod : 442
+#> 288, 13 ? 21037; sum : 301; prod : 3744
+#> 63, 18, 13 ? 21037; 81, 13 ? 21037; sum : 94; prod : 1053
+#> 1134, 13 ? 21037; sum : 1147; prod : 14742
+#> 11, 6, 16, 20 ? 292; 17, 16, 20 ? 292; 33, 20 ? 292; sum : 53; prod : 660
+#> 272, 20 ? 292; sum : 292; prod : 5440
+#> [1] 3749
+```
+
+#### part2: add additional concatenation operator
+
+Add another branch with new operator to equation tree;  
+This naive approach now takes ~2min with actual puzzle input,
+let’s switch to `furrr` for parallel processing.
+
+``` r
+# Ex: 11387
+library(furrr)
+#> Loading required package: future
+
+num_concat <- \(x) as.character(x) |> paste0(collapse = "") |> as.numeric()
+
+test_verif2 <- function(equation, test_val){
+  if (length(equation) == 2){
+    return(
+      num_concat(equation) == test_val || sum(equation) ==  test_val || prod(equation) == test_val
+    )
+  } 
+  return(
+    test_verif2(c(num_concat(equation[1:2]), equation[-(1:2)]), test_val) ||  
+    test_verif2(c(       sum(equation[1:2]), equation[-(1:2)]), test_val) ||  
+    test_verif2(c(      prod(equation[1:2]), equation[-(1:2)]), test_val)
+  )
+}
+
+plan(multisession, workers = parallelly::availableCores(omit = 1))
+
+calibration_df |> 
+  subset(subset = future_map2_lgl(equation, test_val, test_verif2, .progress = TRUE), select = test_val) |> 
+  sum()
+#> [1] 11387
 ```
