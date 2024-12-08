@@ -729,3 +729,192 @@ calibration_df |>
   sum()
 #> [1] 11387
 ```
+## Day 8: Resonant Collinearity
+
+<https://adventofcode.com/2024/day/8>
+
+``` r
+source("aoc.R")
+
+library(purrr)
+test_in <- 
+"............
+........0...
+.....0......
+.......0....
+....0.......
+......A.....
+............
+............
+........A...
+.........A..
+............
+............"
+
+m <- 
+  aoc_lines(test_in) |>
+  strsplit("") |> 
+  do.call(what = rbind)
+```
+
+#### part1: find unique locations of antinodes
+
+For each pair of antennas that share the same frequencey there’s a pair of antinodes.
+Use complex numbers for coordinates and calculate antinodes with *a1 = z1 + (z1 - z2); a2 = z2 + (z2 - z1)*,
+remove results that are outside of map area
+
+``` r
+# Ex: 14
+
+# z: a vector of complex numbers of length 2 holding coordinates for an antenna pair,
+# vectorized form to calculate a1 = z1 + (z1 - z2); a2 = z2 + (z2 - z1)
+antinodes <- \(z) 2*z[1:2] - z[2:1]
+
+# locations from matrix to dataframe
+antenna_locations <- 
+  which(m != ".", arr.ind = TRUE) |> 
+  as.data.frame() |> 
+  within({
+    freq <- m[cbind(row, col)]
+    z    <- complex(real = col, imaginary = row)
+  })
+antenna_locations
+#>   row col      z freq
+#> 1   5   5  5+ 5i    0
+#> 2   3   6  6+ 3i    0
+#> 3   6   7  7+ 6i    A
+#> 4   4   8  8+ 4i    0
+#> 5   2   9  9+ 2i    0
+#> 6   9   9  9+ 9i    A
+#> 7  10  10 10+10i    A
+
+# cycle through pairs of antennas within each frequency, 
+# find antinodes and remove results that fall outside of map area,
+# count unique locations
+anti_locations <- 
+  split(antenna_locations, ~freq) |> 
+  lapply(
+    \(df) {
+      a <- combn(df$z, 2) |> apply(2, antinodes)
+      a[Re(a) >= 1 & Re(a) <= ncol(m) & 
+        Im(a) >= 1 & Im(a) <= nrow(m)]
+    }
+  )
+anti_locations |> 
+  do.call(what = c) |> 
+  unique() |> 
+  length()
+#> [1] 14
+```
+
+#### part2: antinodes now occur at any grid position exactly in line with at least two antennas of the same frequency
+
+Each antenna pair forms a linear equation, *y = i0 + tan(phi) \* x*, calculate *y* for every grid column (1:50).  
+Antenna pair is presented as a pair of complex numbers ( *z1* & *z2* )
+and we are after a line that cuts though z1 & z2.
+
+``` r
+# Ex: 34
+equations <- 
+  split(antenna_locations, ~freq) |> 
+  lapply(
+    \(df) {
+      # sorted combinations for consistency
+      combn(df$z, 2, FUN = sort) |> 
+      t() |> 
+      `colnames<-`(c("z1", "z2")) |> 
+      as.data.frame() |> 
+      within({
+        # slope from diff argument for slope 
+        slope  <- tan(Arg(z2 - z1))
+        # intercept (from similar triangles)
+        intercept  <- Im(z1) - slope * Re(z1)
+      })
+    }
+  )
+equations
+#> $`0`
+#>     z1   z2 intercept      slope
+#> 1 5+5i 6+3i 15.000000 -2.0000000
+#> 2 5+5i 8+4i  6.666667 -0.3333333
+#> 3 5+5i 9+2i  8.750000 -0.7500000
+#> 4 6+3i 8+4i  0.000000  0.5000000
+#> 5 6+3i 9+2i  5.000000 -0.3333333
+#> 6 8+4i 9+2i 20.000000 -2.0000000
+#> 
+#> $A
+#>     z1     z2     intercept    slope
+#> 1 7+6i  9+ 9i -4.500000e+00 1.500000
+#> 2 7+6i 10+10i -3.333333e+00 1.333333
+#> 3 9+9i 10+10i  1.776357e-15 1.000000
+
+# shape x-range as a matrix (n lines x matrix columns) for vectorized calculation  
+y_pos <- 
+  equations |> 
+  lapply(\(df) with(df, intercept + slope * matrix(1:ncol(m), byrow = TRUE, ncol = ncol(m), nrow = nrow(df)))) |> 
+  do.call(what = rbind)
+round(y_pos, 2)
+#>        [,1]  [,2]  [,3]  [,4]  [,5] [,6] [,7]  [,8]  [,9] [,10] [,11] [,12]
+#>  [1,] 13.00 11.00  9.00  7.00  5.00 3.00 1.00 -1.00 -3.00 -5.00 -7.00 -9.00
+#>  [2,]  6.33  6.00  5.67  5.33  5.00 4.67 4.33  4.00  3.67  3.33  3.00  2.67
+#>  [3,]  8.00  7.25  6.50  5.75  5.00 4.25 3.50  2.75  2.00  1.25  0.50 -0.25
+#>  [4,]  0.50  1.00  1.50  2.00  2.50 3.00 3.50  4.00  4.50  5.00  5.50  6.00
+#>  [5,]  4.67  4.33  4.00  3.67  3.33 3.00 2.67  2.33  2.00  1.67  1.33  1.00
+#>  [6,] 18.00 16.00 14.00 12.00 10.00 8.00 6.00  4.00  2.00  0.00 -2.00 -4.00
+#>  [7,] -3.00 -1.50  0.00  1.50  3.00 4.50 6.00  7.50  9.00 10.50 12.00 13.50
+#>  [8,] -2.00 -0.67  0.67  2.00  3.33 4.67 6.00  7.33  8.67 10.00 11.33 12.67
+#>  [9,]  1.00  2.00  3.00  4.00  5.00 6.00 7.00  8.00  9.00 10.00 11.00 12.00
+
+# keep only near-integer positions ..
+y_pos_rnd <- round(y_pos)
+y_pos_rnd[abs(y_pos - y_pos_rnd) > 1e-6] <- NA
+# .. that are still within map area
+y_pos_rnd[!(y_pos_rnd %in% seq_len(ncol(m)))] <- NA
+# total number of unique positions
+apply(y_pos_rnd, 2, table) |> lengths() |> sum()
+#> [1] 34
+```
+
+#### viz
+
+``` r
+ufreq <- unique(antenna_locations$freq)
+pal <- 
+  length(ufreq) |> 
+  hcl.colors("Dark 2") |> 
+  setNames(ufreq)
+
+par(
+  mar = c(2,2,2,2)+.1,
+  pty = "s"
+)
+
+# input points (filled)
+with(antenna_locations, plot(z, pch = 20, cex = 5, col = pal[freq], xlim = c(1, ncol(m)), ylim = c(nrow(m), 1)))
+
+# lines 
+names(equations) |> 
+  lapply(\(freq) apply(equations[[freq]], 1, \(row_) abline(row_["intercept"], row_["slope"], col = pal[freq], lty = 2))) |> 
+  invisible()
+
+# input point labels
+with(antenna_locations, points(z, pch = freq, cex = 1.5, col = "white"))
+
+# points (part 2, diamond)
+for(x_pos in seq_len(ncol(y_pos_rnd))){
+  y <- y_pos_rnd[,x_pos] |> na.omit() |> unique()
+  x <- rep(x_pos, length(y))
+  points(x, y, cex = 3, lwd = 2, pch = 5, col = "gray50")
+}
+
+# part1 points, circles
+names(anti_locations) |>
+  lapply(\(freq){
+    data.frame(freq, z = anti_locations[[freq]])
+  }) |> 
+  do.call(what = rbind) |> 
+  with(points(z, pch = 1, cex = 5, lwd = 3, col = pal[freq]))
+grid(nx = ncol(m), ny = nrow(m))
+```
+
+![](img/day08_reprex_files_unnamed-chunk-8-1.png)<!-- -->
