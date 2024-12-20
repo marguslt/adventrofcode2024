@@ -58,6 +58,4 @@ parsed_lists |>
   with(table(b)[as.character(a)] * a) |> 
   sum(na.rm = TRUE)
 #> [1] 31
-
-# reprex::reprex(input = "day01.R")
 ```
