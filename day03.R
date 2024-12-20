@@ -19,7 +19,7 @@ corrupted_mem_1 |>
 
 # -------------------------------------------------------------------------
 #' #### part2: handle `do()` & `don't()` instructions
-#' Find locations for do() & don't() matches,
+#' Find locations for `do()` & `don't()` matches,
 #' split input text index range by `do`/`don't` intervals,
 #' keep only `do` ranges by checking first values in splits against `dos`;
 #' return only matches where start value is within do_ranges.
@@ -40,6 +40,7 @@ corrupted_mem_2 |>
   strsplit(",") |> 
   do.call(what = rbind) |> 
   `class<-`("numeric") |> 
+  print() |> 
   apply(1, prod) |> 
   sum()
 

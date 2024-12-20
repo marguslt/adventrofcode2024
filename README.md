@@ -31,6 +31,7 @@ str(parsed_lists)
 
 ``` r
 # Ex: 11
+
 parsed_lists |> 
   with(sort(a) - sort(b)) |> 
   abs() |> 
@@ -52,6 +53,7 @@ Multiply each `a` with its count in `b`, sum
 
 ``` r
 # Ex: 31
+
 parsed_lists |> 
   with(table(b)[as.character(a)] * a) |> 
   sum(na.rm = TRUE)
@@ -92,6 +94,7 @@ str(parsed_reports)
 
 ``` r
 # Ex: 2
+
 diff_within_tol <- \(x) all(abs(x) <= 3) 
 
 diff_is_strictly_monotonic  <- function(x){
@@ -155,7 +158,7 @@ corrupted_mem_1 |>
 
 #### part2: handle `do()` & `don't()` instructions
 
-Find locations for do() & don’t() matches,
+Find locations for `do()` & `don't()` matches,
 split input text index range by `do`/`don't` intervals,
 keep only `do` ranges by checking first values in splits against `dos`;
 return only matches where start value is within do_ranges.
@@ -178,7 +181,11 @@ corrupted_mem_2 |>
   strsplit(",") |> 
   do.call(what = rbind) |> 
   `class<-`("numeric") |> 
+  print() |> 
   apply(1, prod) |> 
   sum()
+#>      [,1] [,2]
+#> [1,]    2    4
+#> [2,]    8    5
 #> [1] 48
 ```
