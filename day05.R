@@ -64,7 +64,7 @@ g <-
   parsed_lst$rules |> 
   do.call(what = rbind) |> 
   graph_from_data_frame()
-# plot(g)
+plot(g)
 
 rule_compliance <- sapply(parsed_lst$updates, check_page_order, g = g)
 is_valid <- sapply(rule_compliance, all)
