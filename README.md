@@ -918,3 +918,176 @@ grid(nx = ncol(m), ny = nrow(m))
 ```
 
 ![](img/day08_reprex_files_unnamed-chunk-8-1.png)<!-- -->
+## Day 9: Disk Fragmenter
+
+<https://adventofcode.com/2024/day/9>
+
+``` r
+source("aoc.R")
+library(tidyverse, warn.conflicts = FALSE)
+
+options(scipen = 20)
+test_in <- "2333133121414131402"
+```
+
+#### part1: increase continuous free space by compacting files
+
+File map is sequence of single-digit block counts, starting with file block count
+and followed by free block count; ID of each file is a file sequence, starting from zero.
+Move files 1 block a time from the end of disk to rightmost free block to fill all gaps,
+and calculate new disk checksum.
+- complete disk as a vector, `NA`s at free locations
+- keep track of disk state through 2 vectros, one for free blocks and another for used blocks
+
+``` r
+# Ex: 1928
+prn_disk <- \(disk) paste0(disk, collapse = "") |> str_replace_all("NA", ".")
+dbg_header <- function (disk){
+  sprintf("idx %66s", paste0(rep(c(1:9,0), length.out = length(disk)), collapse = "")) |> message()
+  sprintf("%70s", prn_disk(disk)) |> message()
+}
+
+# checksum: each block's position multiplied by file id, summed
+# file ids for checksum start with 0
+checksum <- \(disk) sum(disk * (seq_along(disk) - 1), na.rm = TRUE)
+
+disk_map <- 
+  aoc_lines(test_in) |>
+  str_split_1("") |> 
+  # append 0 to get even number of values for 2-col matrix
+  as.numeric() |> c(0) |> 
+  matrix(ncol = 2, byrow = TRUE)  |> 
+  `colnames<-`(c("len_file", "len_free")) |> 
+  as_tibble() |> 
+  mutate(
+    # file id-s start from 0
+    file_id = row_number() - 1,
+    start_file = (cumsum(len_file + len_free) + 1) |> lag(default = 1),
+    start_free = start_file + len_file,
+    files = pick(len_file:file_id) |> pmap(\(len_file, len_free, file_id) c(rep(file_id, len_file), rep(NA, len_free)))
+  )
+disk_map |> 
+  mutate(files = map_chr(files, paste, collapse = ",")) |> 
+  relocate(file_id, .before = 1)
+#> # A tibble: 10 × 6
+#>    file_id len_file len_free start_file start_free files         
+#>      <dbl>    <dbl>    <dbl>      <dbl>      <dbl> <chr>         
+#>  1       0        2        3          1          3 0,0,NA,NA,NA  
+#>  2       1        3        3          6          9 1,1,1,NA,NA,NA
+#>  3       2        1        3         12         13 2,NA,NA,NA    
+#>  4       3        3        1         16         19 3,3,3,NA      
+#>  5       4        2        1         20         22 4,4,NA        
+#>  6       5        4        1         23         27 5,5,5,5,NA    
+#>  7       6        4        1         28         32 6,6,6,6,NA    
+#>  8       7        3        1         33         36 7,7,7,NA      
+#>  9       8        4        0         37         41 8,8,8,8       
+#> 10       9        2        0         41         43 9,9
+
+# whole disk, each item is single block, values are file id-s
+(disk <- list_c(disk_map$files))
+#>  [1]  0  0 NA NA NA  1  1  1 NA NA NA  2 NA NA NA  3  3  3 NA  4  4 NA  5  5  5
+#> [26]  5 NA  6  6  6  6 NA  7  7  7 NA  8  8  8  8  9  9
+# free block idxs to move files to
+(head_free <- which(is.na(disk)))
+#>  [1]  3  4  5  9 10 11 13 14 15 19 22 27 32 36
+# used block idxs to move files from, reversed
+(tail_used <- which(!is.na(disk)) |> rev())
+#>  [1] 42 41 40 39 38 37 35 34 33 31 30 29 28 26 25 24 23 21 20 18 17 16 12  8  7
+#> [26]  6  2  1
+
+# loop through head_free & tail_used, 
+# swap block in disk vector;
+# stop when tail meets head
+idx <- 1
+dbg_header(disk)
+#> idx                         123456789012345678901234567890123456789012
+#>                             00...111...2...333.44.5555.6666.777.888899
+while (head_free[idx] < tail_used[idx]) {
+  disk[c(head_free[idx], tail_used[idx])] <- disk[c(tail_used[idx], head_free[idx])]
+  sprintf("%2s: disk[%2s] <-%s-> disk[%2s] %s", idx, head_free[idx], disk[head_free[idx]], tail_used[idx], prn_disk(disk)) |> message()
+  idx <- idx + 1
+}
+#>  1: disk[ 3] <-9-> disk[42] 009..111...2...333.44.5555.6666.777.88889.
+#>  2: disk[ 4] <-9-> disk[41] 0099.111...2...333.44.5555.6666.777.8888..
+#>  3: disk[ 5] <-8-> disk[40] 00998111...2...333.44.5555.6666.777.888...
+#>  4: disk[ 9] <-8-> disk[39] 009981118..2...333.44.5555.6666.777.88....
+#>  5: disk[10] <-8-> disk[38] 0099811188.2...333.44.5555.6666.777.8.....
+#>  6: disk[11] <-8-> disk[37] 009981118882...333.44.5555.6666.777.......
+#>  7: disk[13] <-7-> disk[35] 0099811188827..333.44.5555.6666.77........
+#>  8: disk[14] <-7-> disk[34] 00998111888277.333.44.5555.6666.7.........
+#>  9: disk[15] <-7-> disk[33] 009981118882777333.44.5555.6666...........
+#> 10: disk[19] <-6-> disk[31] 009981118882777333644.5555.666............
+#> 11: disk[22] <-6-> disk[30] 00998111888277733364465555.66.............
+#> 12: disk[27] <-6-> disk[29] 0099811188827773336446555566..............
+checksum(disk)
+#> [1] 1928
+```
+
+#### part2: instead of moving blocks move whole files
+
+Move whole files in order of decreasing file ID number.
+- create another copy of a disk vector, `disk_free_lenghts`, to keep track of free locations
+-
+-
+
+``` r
+# Ex: 2858
+# used with pmap; len_file, len_free are column names in input df
+free_lengths <- \(len_file, len_free, ...) c(rep(0, len_file), rev(seq_len(len_free)))
+
+(disk <- list_c(disk_map$files))
+#>  [1]  0  0 NA NA NA  1  1  1 NA NA NA  2 NA NA NA  3  3  3 NA  4  4 NA  5  5  5
+#> [26]  5 NA  6  6  6  6 NA  7  7  7 NA  8  8  8  8  9  9
+# generate disk_free_lengths from disk_map$len_file & disk_map$len_free 
+(disk_free_lengths <- pmap(disk_map, free_lengths) |> list_c())
+#>  [1] 0 0 3 2 1 0 0 0 3 2 1 0 3 2 1 0 0 0 1 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0 0
+#> [39] 0 0 0 0
+
+# disk map ordered by descending file id 
+rev_dm <- 
+  disk_map |> 
+  select(id = file_id, start = start_file, len = len_file) |> 
+  arrange(desc(id)) |> 
+  print()
+#> # A tibble: 10 × 3
+#>       id start   len
+#>    <dbl> <dbl> <dbl>
+#>  1     9    41     2
+#>  2     8    37     4
+#>  3     7    33     3
+#>  4     6    28     4
+#>  5     5    23     4
+#>  6     4    20     2
+#>  7     3    16     3
+#>  8     2    12     1
+#>  9     1     6     3
+#> 10     0     1     2
+
+# loop though rev_dm rows, swap whole blocks in disk
+for(rev_dm_ptr in seq_len(nrow(rev_dm))){
+  f <- rev_dm[rev_dm_ptr,]
+  free_ptr <- which.max(disk_free_lengths >= f$len)
+  
+  if (free_ptr > 1 && free_ptr < f$start) {
+    from_range <- f$start:(f$start + f$len - 1)
+    to_range <- free_ptr:(free_ptr + f$len - 1)
+    disk[c(to_range, from_range)] <- disk[c(from_range, to_range)]
+    disk_free_lengths[to_range] <- 0
+    
+    sprintf(
+      "%2s: disk[%5s] <-%s-> disk[%5s] %s", rev_dm_ptr,
+      paste0(sprintf("%.2d", range(from_range)), collapse = ":"),
+      disk[free_ptr],
+      paste0(sprintf("%.2d", range(to_range))  , collapse = ":"),
+      prn_disk(disk)
+    ) |>
+    message()
+  }
+}
+#>  1: disk[41:42] <-9-> disk[03:04] 0099.111...2...333.44.5555.6666.777.8888..
+#>  3: disk[33:35] <-7-> disk[09:11] 0099.1117772...333.44.5555.6666.....8888..
+#>  6: disk[20:21] <-4-> disk[13:14] 0099.111777244.333....5555.6666.....8888..
+#>  8: disk[12:12] <-2-> disk[05:05] 00992111777.44.333....5555.6666.....8888..
+checksum(disk) 
+#> [1] 2858
+```
