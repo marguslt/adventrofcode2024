@@ -69,8 +69,7 @@ checksum(disk)
 #' #### part2: instead of moving blocks move whole files
 #' Move whole files in order of decreasing file ID number.
 #' - create another copy of a disk vector, `disk_free_lenghts`, to keep track of free locations
-#' - 
-#' - 
+#' - swap whole block ranges instead of individual disk blocks
 # Ex: 2858
 # used with pmap; len_file, len_free are column names in input df
 free_lengths <- \(len_file, len_free, ...) c(rep(0, len_file), rev(seq_len(len_free)))

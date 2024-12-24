@@ -1029,8 +1029,7 @@ checksum(disk)
 
 Move whole files in order of decreasing file ID number.
 - create another copy of a disk vector, `disk_free_lenghts`, to keep track of free locations
--
--
+- swap whole block ranges instead of individual disk blocks
 
 ``` r
 # Ex: 2858
