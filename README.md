@@ -999,14 +999,16 @@ disk_map |>
 # swap block in disk vector;
 # stop when tail meets head
 idx <- 1
-dbg_header(disk)
+{
+  dbg_header(disk)
+  while (head_free[idx] < tail_used[idx]) {
+    disk[c(head_free[idx], tail_used[idx])] <- disk[c(tail_used[idx], head_free[idx])]
+    sprintf("%2s: disk[%2s] <-%s-> disk[%2s] %s", idx, head_free[idx], disk[head_free[idx]], tail_used[idx], prn_disk(disk)) |> message()
+    idx <- idx + 1
+  }
+}
 #> idx                         123456789012345678901234567890123456789012
 #>                             00...111...2...333.44.5555.6666.777.888899
-while (head_free[idx] < tail_used[idx]) {
-  disk[c(head_free[idx], tail_used[idx])] <- disk[c(tail_used[idx], head_free[idx])]
-  sprintf("%2s: disk[%2s] <-%s-> disk[%2s] %s", idx, head_free[idx], disk[head_free[idx]], tail_used[idx], prn_disk(disk)) |> message()
-  idx <- idx + 1
-}
 #>  1: disk[ 3] <-9-> disk[42] 009..111...2...333.44.5555.6666.777.88889.
 #>  2: disk[ 4] <-9-> disk[41] 0099.111...2...333.44.5555.6666.777.8888..
 #>  3: disk[ 5] <-8-> disk[40] 00998111...2...333.44.5555.6666.777.888...

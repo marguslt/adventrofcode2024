@@ -55,11 +55,13 @@ disk_map |>
 # swap block in disk vector;
 # stop when tail meets head
 idx <- 1
-dbg_header(disk)
-while (head_free[idx] < tail_used[idx]) {
-  disk[c(head_free[idx], tail_used[idx])] <- disk[c(tail_used[idx], head_free[idx])]
-  sprintf("%2s: disk[%2s] <-%s-> disk[%2s] %s", idx, head_free[idx], disk[head_free[idx]], tail_used[idx], prn_disk(disk)) |> message()
-  idx <- idx + 1
+{
+  dbg_header(disk)
+  while (head_free[idx] < tail_used[idx]) {
+    disk[c(head_free[idx], tail_used[idx])] <- disk[c(tail_used[idx], head_free[idx])]
+    sprintf("%2s: disk[%2s] <-%s-> disk[%2s] %s", idx, head_free[idx], disk[head_free[idx]], tail_used[idx], prn_disk(disk)) |> message()
+    idx <- idx + 1
+  }
 }
 checksum(disk)
 
