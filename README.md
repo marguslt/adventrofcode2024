@@ -397,7 +397,7 @@ str(parsed_lst, list.len = 3)
 #>   .. [list output truncated]
 ```
 
-#### part1: count updates that comply with all page ordering rules
+## part1: count updates that comply with all page ordering rules
 
 Rule `47|53` means that if both pages occur in update, 47 must be printed before 53,
 though not essentially immediately before 53.
@@ -408,6 +408,7 @@ Elves need to know the middle page number of each correct update, answer is some
 
 ``` r
 # Ex: 143
+#
 check_page_order <- function(pages, g){
   # 75,47,61,53,29 -> from = 75, to = 47; ... ; from = 53, to = 29
   mapply(
@@ -421,12 +422,6 @@ g <-
   parsed_lst$rules |> 
   do.call(what = rbind) |> 
   graph_from_data_frame()
-plot(g)
-```
-
-![](img/day05_reprex_files_unnamed-chunk-4-1.png)<!-- -->
-
-``` r
 
 rule_compliance <- sapply(parsed_lst$updates, check_page_order, g = g)
 is_valid <- sapply(rule_compliance, all)
@@ -436,9 +431,16 @@ parsed_lst$updates[is_valid] |>
   as.numeric() |> 
   sum()
 #> [1] 143
+
+withr::with_par(
+  list(mar = c(0,0,0,0)),
+  plot(g, layout = layout_in_circle)
+)
 ```
 
-#### part2: fix failed updates
+![](img/day05_reprex_files_unnamed-chunk-4-1.png)<!-- -->
+
+### part2: fix failed updates
 
 Swap 1st failed location and next position until rule check passes
 
@@ -877,47 +879,61 @@ apply(y_pos_rnd, 2, table) |> lengths() |> sum()
 
 #### viz
 
+Antenna locations from input (filled), antinodes for *part1* (circles) and *part2* (diamonds)
+along with lines that intersect each same-frequency antenna pair and are described by `equations`.
+
+<details>
+<summary>
+Code
+</summary>
+
 ``` r
-ufreq <- unique(antenna_locations$freq)
-pal <- 
-  length(ufreq) |> 
-  hcl.colors("Dark 2") |> 
-  setNames(ufreq)
-
-par(
-  mar = c(2,2,2,2)+.1,
-  pty = "s"
-)
-
-# input points (filled)
-with(antenna_locations, plot(z, pch = 20, cex = 5, col = pal[freq], xlim = c(1, ncol(m)), ylim = c(nrow(m), 1)))
-
-# lines 
-names(equations) |> 
-  lapply(\(freq) apply(equations[[freq]], 1, \(row_) abline(row_["intercept"], row_["slope"], col = pal[freq], lty = 2))) |> 
-  invisible()
-
-# input point labels
-with(antenna_locations, points(z, pch = freq, cex = 1.5, col = "white"))
-
-# points (part 2, diamond)
-for(x_pos in seq_len(ncol(y_pos_rnd))){
-  y <- y_pos_rnd[,x_pos] |> na.omit() |> unique()
-  x <- rep(x_pos, length(y))
-  points(x, y, cex = 3, lwd = 2, pch = 5, col = "gray50")
+plot_antinodes <- function(antenna_locations, equations){
+  ufreq <- unique(antenna_locations$freq)
+  pal <- 
+    length(ufreq) |> 
+    hcl.colors("Dark 2") |> 
+    setNames(ufreq)
+  
+  # input points (filled)
+  with(antenna_locations, plot(z, pch = 20, cex = 5, col = pal[freq], xlim = c(1, ncol(m)), ylim = c(nrow(m), 1)))
+  
+  # lines 
+  names(equations) |> 
+    lapply(\(freq) apply(equations[[freq]], 1, \(row_) abline(row_["intercept"], row_["slope"], col = pal[freq], lty = 2))) |> 
+    invisible()
+  
+  # input point labels
+  with(antenna_locations, points(z, pch = freq, cex = 1.5, col = "white"))
+  
+  # points (part 2, diamond)
+  for(x_pos in seq_len(ncol(y_pos_rnd))){
+    y <- y_pos_rnd[,x_pos] |> na.omit() |> unique()
+    x <- rep(x_pos, length(y))
+    points(x, y, cex = 3, lwd = 2, pch = 5, col = "gray50")
+  }
+  
+  # part1 points, circles
+  names(anti_locations) |>
+    lapply(\(freq){
+      data.frame(freq, z = anti_locations[[freq]])
+    }) |> 
+    do.call(what = rbind) |> 
+    with(points(z, pch = 1, cex = 5, lwd = 3, col = pal[freq]))
+  grid(nx = ncol(m), ny = nrow(m))  
 }
-
-# part1 points, circles
-names(anti_locations) |>
-  lapply(\(freq){
-    data.frame(freq, z = anti_locations[[freq]])
-  }) |> 
-  do.call(what = rbind) |> 
-  with(points(z, pch = 1, cex = 5, lwd = 3, col = pal[freq]))
-grid(nx = ncol(m), ny = nrow(m))
 ```
 
-![](img/day08_reprex_files_unnamed-chunk-8-1.png)<!-- -->
+</details>
+
+``` r
+withr::with_par(
+  list(mar = c(2,2,2,2)+.1, pty = "s"),
+  plot_antinodes(antenna_locations, equations)
+)
+```
+
+![](img/day08_reprex_files_plot-1.png)<!-- -->
 ## Day 9: Disk Fragmenter
 
 <https://adventofcode.com/2024/day/9>
@@ -1184,6 +1200,11 @@ lengths(paths_0_9) |> sum()
 
 Heights (vertices) and remaining edges that form paths, colored by a number of paths they are part of.
 
+<details>
+<summary>
+Code
+</summary>
+
 ``` r
 edge_score <- 
   paths_0_9 |> 
@@ -1200,20 +1221,20 @@ E(g)$color <- E(g)$score |> cut(5) |> scales::dscale(\(n) sequential_pal(n+1)[-1
 E(g)[score == 0]$color <- "gray80"
 # mark trailheads and highest points
 V(g)[height %in% c(0, 9)]$frame.color <- "darkred"
+V(g)$label <-  V(g)$height
+```
 
+</details>
+
+``` r
 withr::with_par(
+  # list(mar = c(0,0,0,0), pty = "s"),
   list(mar = c(0,0,0,0)),
-  plot(
-    g, 
-    vertex.label = V(g)$height, 
-    vertex.label.cex = 2, 
-    vertex.shape = "square", 
-    vertex.frame.width = 3 
-  )
+  plot(g, vertex.label.cex = 2, vertex.shape = "square", vertex.frame.width = 3)
 )
 ```
 
-![](img/day10_reprex_files_unnamed-chunk-6-1.png)<!-- -->
+![](img/day10_reprex_files_plot-1.png)<!-- -->
 
 #### part2: calculate trailhead ratings
 

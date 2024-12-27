@@ -108,16 +108,16 @@ aoc_reprex <- function(dayR, readme_append = FALSE, ...){
   }
 }
 
-# aoc_reprex("day0?.R", readme_append = T)
-
-# usage
-# render with:
-# reprex::reprex(input = "day03.R")
-# cat day03_reprex.md >> README.md
-# git add README.md day03.R
-# git commit --date="2024-12-03 12:00:00" -m "day 03"
-
-# restore version:
-# git checkout c87f657969f0bb9b17c29fdc53f436347b5e43f7 -- README.md
+# fold chunk hook; usage: #+ fold=TRUE 
+# https://yihui.org/knitr/hooks/#chunk-hooks
+knitr::knit_hooks$set(fold = function(before, options, envir, name, ...) {
+  if (before) {
+    # code to be run before a chunk
+    return(paste0("<details>\n<summary>Code</summary>\n\n"))
+  } else {
+    # code to be run after a chunk
+    return(paste0("</details>\n"))
+  }
+})
 
 
