@@ -23,7 +23,8 @@ calibration_df <-
 calibration_df
 
 # -------------------------------------------------------------------------
-#' #### part1: detect which equations can produce test value
+#' ### part1: detect correct equations
+#' Detect which equations can produce test value. 
 #' Numbers in equations are combined with operators (`+`, `*`), evaluated always from left to right.
 #' Use recursion to build equation tree
 # Ex: 3749
@@ -50,7 +51,7 @@ calibration_df |>
   
 
 # -------------------------------------------------------------------------
-#' #### part2: add additional concatenation operator
+#' ### part2: add additional concat operator
 #' Add another branch with new operator to equation tree;  
 #' This naive approach now takes ~2min with actual puzzle input, 
 #' let's switch to `furrr` for parallel processing.

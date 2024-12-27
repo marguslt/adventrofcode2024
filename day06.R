@@ -32,7 +32,7 @@ dbg_print <- function(obstr_pos, start_pos, m, msg = ""){
 }
 
 # -------------------------------------------------------------------------
-#' #### part1: predict the guard's route
+#' ### part1: predict the guard's route
 #' Predict guards path starting from `^` (indicates direction) until she leaves 
 #' the map area and count distinct positions.  
 #' When facing obstacles , `#`, guard starts to turn clockwise. 
@@ -63,7 +63,8 @@ dbg_print(NA, start_pos, m)
 sum(m == "X")
 
 # -------------------------------------------------------------------------
-#' #### part2: place new obstruction to catch guard in a loop, find number of suitable obstruction positions
+#' ### part2: count looping obstruction positions
+#' Place new obstruction to catch guard in a loop, find number of suitable obstruction positions  
 #' Brute force though all previously marked locations (start point removed) 
 #' - start with matrix from part1 (or original)
 #' - add an obstacle on to path

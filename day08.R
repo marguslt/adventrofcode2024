@@ -23,7 +23,7 @@ m <-
   do.call(what = rbind)
 
 # -------------------------------------------------------------------------
-#' #### part1: find unique locations of antinodes
+#' ### part1: find unique locations of antinodes
 #' For each pair of antennas that share the same frequencey there's a pair of antinodes.
 #' Use complex numbers for coordinates and calculate antinodes with *a1 = z1 + (z1 - z2); a2 = z2 + (z2 - z1)*, 
 #' remove results that are outside of map area
@@ -61,7 +61,8 @@ anti_locations |>
   length()
 
 # -------------------------------------------------------------------------
-#' #### part2: antinodes now occur at any grid position exactly in line with at least two antennas of the same frequency
+#' ### part2: find more antinodes
+#' Antinodes now occur at any grid position exactly in line with at least two antennas of the same frequency
 #' Each antenna pair forms a linear equation, *y = i0 + tan(phi) \* x*, calculate *y* for every grid column (1:50).  
 #' Antenna pair is presented as a pair of complex numbers ( *z1* & *z2* ) 
 #' and we are after a line that cuts though z1 & z2. 
@@ -101,41 +102,48 @@ y_pos_rnd[!(y_pos_rnd %in% seq_len(ncol(m)))] <- NA
 apply(y_pos_rnd, 2, table) |> lengths() |> sum()
 
 # -------------------------------------------------------------------------
-#' #### viz
-ufreq <- unique(antenna_locations$freq)
-pal <- 
-  length(ufreq) |> 
-  hcl.colors("Dark 2") |> 
-  setNames(ufreq)
-
-par(
-  mar = c(2,2,2,2)+.1,
-  pty = "s"
-)
-
-# input points (filled)
-with(antenna_locations, plot(z, pch = 20, cex = 5, col = pal[freq], xlim = c(1, ncol(m)), ylim = c(nrow(m), 1)))
-
-# lines 
-names(equations) |> 
-  lapply(\(freq) apply(equations[[freq]], 1, \(row_) abline(row_["intercept"], row_["slope"], col = pal[freq], lty = 2))) |> 
-  invisible()
-
-# input point labels
-with(antenna_locations, points(z, pch = freq, cex = 1.5, col = "white"))
-
-# points (part 2, diamond)
-for(x_pos in seq_len(ncol(y_pos_rnd))){
-  y <- y_pos_rnd[,x_pos] |> na.omit() |> unique()
-  x <- rep(x_pos, length(y))
-  points(x, y, cex = 3, lwd = 2, pch = 5, col = "gray50")
+#' ### viz
+#' Antenna locations from input (filled), antinodes for *part1* (circles) and *part2* (diamonds) 
+#' along with lines that intersect each same-frequency antenna pair and are described by `equations`.
+#+ fold=TRUE
+plot_antinodes <- function(antenna_locations, equations){
+  ufreq <- unique(antenna_locations$freq)
+  pal <- 
+    length(ufreq) |> 
+    hcl.colors("Dark 2") |> 
+    setNames(ufreq)
+  
+  # input points (filled)
+  with(antenna_locations, plot(z, pch = 20, cex = 5, col = pal[freq], xlim = c(1, ncol(m)), ylim = c(nrow(m), 1)))
+  
+  # lines 
+  names(equations) |> 
+    lapply(\(freq) apply(equations[[freq]], 1, \(row_) abline(row_["intercept"], row_["slope"], col = pal[freq], lty = 2))) |> 
+    invisible()
+  
+  # input point labels
+  with(antenna_locations, points(z, pch = freq, cex = 1.5, col = "white"))
+  
+  # points (part 2, diamond)
+  for(x_pos in seq_len(ncol(y_pos_rnd))){
+    y <- y_pos_rnd[,x_pos] |> na.omit() |> unique()
+    x <- rep(x_pos, length(y))
+    points(x, y, cex = 3, lwd = 2, pch = 5, col = "gray50")
+  }
+  
+  # part1 points, circles
+  names(anti_locations) |>
+    lapply(\(freq){
+      data.frame(freq, z = anti_locations[[freq]])
+    }) |> 
+    do.call(what = rbind) |> 
+    with(points(z, pch = 1, cex = 5, lwd = 3, col = pal[freq]))
+  grid(nx = ncol(m), ny = nrow(m))  
 }
 
-# part1 points, circles
-names(anti_locations) |>
-  lapply(\(freq){
-    data.frame(freq, z = anti_locations[[freq]])
-  }) |> 
-  do.call(what = rbind) |> 
-  with(points(z, pch = 1, cex = 5, lwd = 3, col = pal[freq]))
-grid(nx = ncol(m), ny = nrow(m))
+#+ plot
+withr::with_par(
+  list(mar = c(2,2,2,2)+.1, pty = "s"),
+  plot_antinodes(antenna_locations, equations)
+)
+

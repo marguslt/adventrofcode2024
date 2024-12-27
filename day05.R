@@ -43,14 +43,16 @@ parsed_lst <-
 str(parsed_lst, list.len = 3)
   
 # -------------------------------------------------------------------------
-#' #### part1: count updates that comply with all page ordering rules
-#' Rule `47|53` means that if both pages occur in update, 47 must be printed before 53,
+#' ### part1: count correctly ordered updates
+#' Updates must comply all ordering rules, a rule `47|53` means that if 
+#' both pages occur in update, 47 must be printed before 53,
 #' though not essentially immediately before 53. 
 #' Elves need to know the middle page number of each correct update, answer is some of those.
 #' - use pages in rules as edge lists (to-from) to build a graph
 #' - generate a sequence of vertex pairs from rules and check if all are adjacent
 #' - check rule compliance, subset valid updates, extract middle page, sum
 # Ex: 143
+#
 check_page_order <- function(pages, g){
   # 75,47,61,53,29 -> from = 75, to = 47; ... ; from = 53, to = 29
   mapply(
@@ -64,7 +66,6 @@ g <-
   parsed_lst$rules |> 
   do.call(what = rbind) |> 
   graph_from_data_frame()
-plot(g)
 
 rule_compliance <- sapply(parsed_lst$updates, check_page_order, g = g)
 is_valid <- sapply(rule_compliance, all)
@@ -74,8 +75,12 @@ parsed_lst$updates[is_valid] |>
   as.numeric() |> 
   sum()
 
+withr::with_par(
+  list(mar = c(0,0,0,0)),
+  plot(g, layout = layout_in_circle)
+)
 # -------------------------------------------------------------------------
-#' #### part2: fix failed updates
+#' ### part2: fix failed updates
 #' Swap 1st failed location and next position until rule check passes  
 # Ex: 123
 # 97,13,75,29,47 >> 97,75,47,29,13

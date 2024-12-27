@@ -6,7 +6,7 @@ corrupted_mem_1 <- aoc_lines("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]th
 corrupted_mem_2 <- aoc_lines("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))")
 
 # -------------------------------------------------------------------------
-#' #### part1: add up real `mul()` instructions
+#' ### part1: add up real `mul()` instructions
 # Ex: 161
 corrupted_mem_1 |> 
   lapply(\(line) regmatches(line, gregexpr("(?<=mul\\()\\d+,\\d+(?=\\))", line, perl = TRUE))[[1]]) |> 
@@ -19,7 +19,7 @@ corrupted_mem_1 |>
   sum()
 
 # -------------------------------------------------------------------------
-#' #### part2: handle `do()` & `don't()` instructions
+#' ### part2: handle `do()` & `don't()` instructions
 #' Find locations for `do()` & `don't()` matches,
 #' split input text index range by `do`/`don't` intervals,
 #' keep only `do` ranges by checking first values in splits against `dos`;

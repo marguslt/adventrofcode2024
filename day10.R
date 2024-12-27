@@ -20,7 +20,7 @@ m <-
   `mode<-`("integer")
 m  
 # -------------------------------------------------------------------------
-#' #### part1: score hiking trail trailheads
+#' ### part1: score hiking trail trailheads
 #' Trail starts from elevation 0 and ends at elevation 9, it has even, gradual, uphill slope.
 #' Trailheads are points at elevation 0, trailhead score is the number of reachable elevation 9 points.
 #' - make directed lattice graph with mutual edges
@@ -63,8 +63,9 @@ paths_0_9 <- lapply(g_lst, \(g_sub) shortest_paths(g_sub, V(g_sub)[height == 0],
 lengths(paths_0_9) |> sum()
 
 # -------------------------------------------------------------------------
-#' ##### viz
+#' #### viz
 #' Heights (vertices) and remaining edges that form paths, colored by a number of paths they are part of.
+#+ fold=TRUE
 edge_score <- 
   paths_0_9 |> 
   lapply(do.call, what = c) |> 
@@ -80,19 +81,15 @@ E(g)$color <- E(g)$score |> cut(5) |> scales::dscale(\(n) sequential_pal(n+1)[-1
 E(g)[score == 0]$color <- "gray80"
 # mark trailheads and highest points
 V(g)[height %in% c(0, 9)]$frame.color <- "darkred"
+V(g)$label <-  V(g)$height
 
+#+ plot
 withr::with_par(
   list(mar = c(0,0,0,0)),
-  plot(
-    g, 
-    vertex.label = V(g)$height, 
-    vertex.label.cex = 2, 
-    vertex.shape = "square", 
-    vertex.frame.width = 3 
-  )
+  plot(g, vertex.label.cex = 2, vertex.shape = "square", vertex.frame.width = 3)
 )
 # -------------------------------------------------------------------------
-#' #### part2: calculate trailhead ratings
+#' ### part2: calculate trailhead ratings
 #' Rating is a number of all distinct hiking trails starting from that trailhead. 
 #' Instead of `shortest_paths()` use `all_shortest_paths()` , extract and count edge paths.
 # Ex: 81

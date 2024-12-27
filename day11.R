@@ -11,7 +11,7 @@ stones <-
   as.list()
 lobstr::tree(stones)
 # -------------------------------------------------------------------------
-#' #### part1: count stones after 25 blinks
+#' ### part1: count stones after 25 blinks
 #' A collection of numbered stones change each time we blink, according to 1st matching rule:  
 #' - *0* turns into *1*
 #' - stone with even number of digits is split into 2, new numbers are left and right half of digits
@@ -64,7 +64,7 @@ Reduce(
 ) |> length()
 
 # -------------------------------------------------------------------------
-#' #### part2: count stones after 75 blinks
+#' ### part2: count stones after 75 blinks
 #' Previous solution does not scale too well after 30 or so blinks, 
 #' instead keep track of the number of unique stones. 
 #' Use `fastmap` for fast key-value storage, each key presents unique stone 

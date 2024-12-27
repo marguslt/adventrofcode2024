@@ -20,7 +20,8 @@ m <-
   do.call(what = rbind)
 m
 # -------------------------------------------------------------------------
-#' #### part1: count occurrences of "XMAS" -- horizontal, vertical, diagonal, also written backwards
+#' ### part1: count occurrences of "XMAS" 
+#' Can be horizontal, vertical, diagonal, also written backwards.  
 #' - generate a list of array indices for left-to-right and diagonals (main diag. + parallel to main)
 #' - extract strings through array indices, count "XMAS" occurrences
 #' - rotate matrix 3x, extracting and counting in every cycle
@@ -76,7 +77,7 @@ sum(counts)
 
 
 # -------------------------------------------------------------------------
-#' #### part2: find two "MAS" in the shape of an X
+#' ### part2: find two "MAS" in the shape of an X
 #' Search for "A"-locations (3x3 sub-matrices), 
 #' exclude cases that are on the edge and check 
 #' if we can get "MS" or "SM" from both diagonals.

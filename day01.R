@@ -13,7 +13,7 @@ test_in <-
 (parsed_lists <- aoc_table(test_in, col.names = c("a", "b")))
 str(parsed_lists)
 # -------------------------------------------------------------------------
-#' #### part1: diff of ordered list summed
+#' ### part1: diff of ordered list summed
 # Ex: 11
 parsed_lists |> 
   with(sort(a) - sort(b)) |> 
@@ -28,7 +28,7 @@ parsed_lists |>
   sum()
 
 # -------------------------------------------------------------------------
-#' #### part2: similarity score  
+#' ### part2: similarity score  
 #' Multiply each `a` with its count in `b`, sum
 # Ex: 31
 parsed_lists |> 

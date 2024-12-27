@@ -27,7 +27,7 @@ str(parsed_lists)
 #>  $ b: int  4 3 5 3 9 3
 ```
 
-#### part1: diff of ordered list summed
+### part1: diff of ordered list summed
 
 ``` r
 # Ex: 11
@@ -46,7 +46,7 @@ parsed_lists |>
 #> [1] 11
 ```
 
-#### part2: similarity score
+### part2: similarity score
 
 Multiply each `a` with its count in `b`, sum
 
@@ -87,7 +87,9 @@ str(parsed_reports)
 #>  $ : int [1:5] 1 3 6 7 9
 ```
 
-#### part1: count strictly monotonic level sequences where step is at most 3
+### part1: count safe reports
+
+Count strictly monotonic level sequences where step is at most 3
 
 ``` r
 # Ex: 2
@@ -105,7 +107,7 @@ parsed_reports |>
 #> [1] 2
 ```
 
-#### part2: tolerate a single bad level
+### part2: tolerate a single bad level
 
 ``` r
 # Ex: 4
@@ -131,7 +133,7 @@ corrupted_mem_1 <- aoc_lines("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]th
 corrupted_mem_2 <- aoc_lines("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))")
 ```
 
-#### part1: add up real `mul()` instructions
+### part1: add up real `mul()` instructions
 
 ``` r
 # Ex: 161
@@ -152,7 +154,7 @@ corrupted_mem_1 |>
 #> [1] 161
 ```
 
-#### part2: handle `do()` & `don't()` instructions
+### part2: handle `do()` & `don't()` instructions
 
 Find locations for `do()` & `don't()` matches,
 split input text index range by `do`/`don't` intervals,
@@ -222,8 +224,9 @@ m
 #> [10,] "M"  "X"  "M"  "X"  "A"  "X"  "M"  "A"  "S"  "X"
 ```
 
-#### part1: count occurrences of “XMAS” – horizontal, vertical, diagonal, also written backwards
+### part1: count occurrences of “XMAS”
 
+Can be horizontal, vertical, diagonal, also written backwards.  
 - generate a list of array indices for left-to-right and diagonals (main diag. + parallel to main)
 - extract strings through array indices, count “XMAS” occurrences
 - rotate matrix 3x, extracting and counting in every cycle
@@ -309,7 +312,7 @@ sum(counts)
 #> [1] 18
 ```
 
-#### part2: find two “MAS” in the shape of an X
+### part2: find two “MAS” in the shape of an X
 
 Search for “A”-locations (3x3 sub-matrices),
 exclude cases that are on the edge and check
@@ -397,9 +400,10 @@ str(parsed_lst, list.len = 3)
 #>   .. [list output truncated]
 ```
 
-## part1: count updates that comply with all page ordering rules
+### part1: count correctly ordered updates
 
-Rule `47|53` means that if both pages occur in update, 47 must be printed before 53,
+Updates must comply all ordering rules, a rule `47|53` means that if
+both pages occur in update, 47 must be printed before 53,
 though not essentially immediately before 53.
 Elves need to know the middle page number of each correct update, answer is some of those.
 - use pages in rules as edge lists (to-from) to build a graph
@@ -498,7 +502,7 @@ dbg_print <- function(obstr_pos, start_pos, m, msg = ""){
 }
 ```
 
-#### part1: predict the guard’s route
+### part1: predict the guard’s route
 
 Predict guards path starting from `^` (indicates direction) until she leaves
 the map area and count distinct positions.  
@@ -548,8 +552,9 @@ sum(m == "X")
 #> [1] 41
 ```
 
-#### part2: place new obstruction to catch guard in a loop, find number of suitable obstruction positions
+### part2: count looping obstruction positions
 
+Place new obstruction to catch guard in a loop, find number of suitable obstruction positions  
 Brute force though all previously marked locations (start point removed)
 - start with matrix from part1 (or original)
 - add an obstacle on to path
@@ -650,8 +655,9 @@ calibration_df
 #> 9      292 11, 6, 16, 20
 ```
 
-#### part1: detect which equations can produce test value
+### part1: detect correct equations
 
+Detect which equations can produce test value.
 Numbers in equations are combined with operators (`+`, `*`), evaluated always from left to right.
 Use recursion to build equation tree
 
@@ -698,7 +704,7 @@ calibration_df |>
 #> [1] 3749
 ```
 
-#### part2: add additional concatenation operator
+### part2: add additional concat operator
 
 Add another branch with new operator to equation tree;  
 This naive approach now takes ~2min with actual puzzle input,
@@ -759,7 +765,7 @@ m <-
   do.call(what = rbind)
 ```
 
-#### part1: find unique locations of antinodes
+### part1: find unique locations of antinodes
 
 For each pair of antennas that share the same frequencey there’s a pair of antinodes.
 Use complex numbers for coordinates and calculate antinodes with *a1 = z1 + (z1 - z2); a2 = z2 + (z2 - z1)*,
@@ -809,8 +815,9 @@ anti_locations |>
 #> [1] 14
 ```
 
-#### part2: antinodes now occur at any grid position exactly in line with at least two antennas of the same frequency
+### part2: find more antinodes
 
+Antinodes now occur at any grid position exactly in line with at least two antennas of the same frequency
 Each antenna pair forms a linear equation, *y = i0 + tan(phi) \* x*, calculate *y* for every grid column (1:50).  
 Antenna pair is presented as a pair of complex numbers ( *z1* & *z2* )
 and we are after a line that cuts though z1 & z2.
@@ -877,7 +884,7 @@ apply(y_pos_rnd, 2, table) |> lengths() |> sum()
 #> [1] 34
 ```
 
-#### viz
+### viz
 
 Antenna locations from input (filled), antinodes for *part1* (circles) and *part2* (diamonds)
 along with lines that intersect each same-frequency antenna pair and are described by `equations`.
@@ -946,9 +953,9 @@ options(scipen = 20)
 test_in <- "2333133121414131402"
 ```
 
-#### part1: increase continuous free space by compacting files
+### part1: increase continuous free space on disk
 
-File map is sequence of single-digit block counts, starting with file block count
+Compact files. File map is sequence of single-digit block counts, starting with file block count
 and followed by free block count; ID of each file is a file sequence, starting from zero.
 Move files 1 block a time from the end of disk to rightmost free block to fill all gaps,
 and calculate new disk checksum.
@@ -1041,7 +1048,7 @@ checksum(disk)
 #> [1] 1928
 ```
 
-#### part2: instead of moving blocks move whole files
+### part2: move whole files instead of blocks
 
 Move whole files in order of decreasing file ID number.
 - create another copy of a disk vector, `disk_free_lenghts`, to keep track of free locations
@@ -1143,7 +1150,7 @@ m
 #> [8,]    1    0    4    5    6    7    3    2
 ```
 
-#### part1: score hiking trail trailheads
+### part1: score hiking trail trailheads
 
 Trail starts from elevation 0 and ends at elevation 9, it has even, gradual, uphill slope.
 Trailheads are points at elevation 0, trailhead score is the number of reachable elevation 9 points.
@@ -1196,7 +1203,7 @@ lengths(paths_0_9) |> sum()
 #> [1] 36
 ```
 
-##### viz
+#### viz
 
 Heights (vertices) and remaining edges that form paths, colored by a number of paths they are part of.
 
@@ -1228,7 +1235,6 @@ V(g)$label <-  V(g)$height
 
 ``` r
 withr::with_par(
-  # list(mar = c(0,0,0,0), pty = "s"),
   list(mar = c(0,0,0,0)),
   plot(g, vertex.label.cex = 2, vertex.shape = "square", vertex.frame.width = 3)
 )
@@ -1236,7 +1242,7 @@ withr::with_par(
 
 ![](img/day10_reprex_files_plot-1.png)<!-- -->
 
-#### part2: calculate trailhead ratings
+### part2: calculate trailhead ratings
 
 Rating is a number of all distinct hiking trails starting from that trailhead.
 Instead of `shortest_paths()` use `all_shortest_paths()` , extract and count edge paths.
@@ -1271,7 +1277,7 @@ lobstr::tree(stones)
 #> └─17
 ```
 
-#### part1: count stones after 25 blinks
+### part1: count stones after 25 blinks
 
 A collection of numbered stones change each time we blink, according to 1st matching rule:  
 - *0* turns into *1*
@@ -1336,7 +1342,7 @@ Reduce(
 #> [1] 55312
 ```
 
-#### part2: count stones after 75 blinks
+### part2: count stones after 75 blinks
 
 Previous solution does not scale too well after 30 or so blinks,
 instead keep track of the number of unique stones.

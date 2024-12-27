@@ -7,8 +7,8 @@ options(scipen = 20)
 test_in <- "2333133121414131402"
 
 # -------------------------------------------------------------------------
-#' #### part1: increase continuous free space by compacting files 
-#' File map is sequence of single-digit block counts, starting with file block count 
+#' ### part1: increase continuous free space on disk
+#' Compact files. File map is sequence of single-digit block counts, starting with file block count 
 #' and followed by free block count; ID of each file is a file sequence, starting from zero.
 #' Move files 1 block a time from the end of disk to rightmost free block to fill all gaps,
 #' and calculate new disk checksum.
@@ -66,7 +66,7 @@ idx <- 1
 checksum(disk)
 
 # -------------------------------------------------------------------------
-#' #### part2: instead of moving blocks move whole files
+#' ### part2: move whole files instead of blocks
 #' Move whole files in order of decreasing file ID number.
 #' - create another copy of a disk vector, `disk_free_lenghts`, to keep track of free locations
 #' - swap whole block ranges instead of individual disk blocks
